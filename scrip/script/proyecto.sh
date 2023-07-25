@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # directorios
-DIR_INFORME="informe"
-DIR_PRESENTACION="presentacion"
+DIR_INFORME="E:/Juegos [Game Boy]/moogleDaniel/mooglePracticas/mooglePracticas/informe"
+DIR_PRESENTACION="E:/Juegos [Game Boy]/moogleDaniel/mooglePracticas/mooglePracticas/presentacion"
 
 # opciones
 OPCIONES="run|clean|report|slides|show_report|show_slides"
@@ -20,53 +20,50 @@ run() {
 # función para compilar el informe en LaTeX
 report() {
   echo "Compilando el informe..."
-  cd $DIR_INFORME
+  cd "$DIR_INFORME"
   pdflatex informe.tex
-  cd ..
+  cd -
 }
 
-# función para compilar la presentación en LaTeX
 slides() {
   echo "Compilando la presentación..."
-  cd $DIR_PRESENTACION
+  cd "$DIR_PRESENTACION"
   pdflatex presentacion.tex
-  cd ..
+  cd -
 }
 
 # función para visualizar el informe en PDF
 show_report() {
   echo "Visualizando el informe..."
-  cd $DIR_INFORME
-  if [ ! -f informe.pdf ]; then
+  if [ ! -f "$DIR_INFORME/informe.pdf" ]; then
+    cd "$DIR_INFORME"
     pdflatex informe.tex
+    cd -
   fi
   if command -v $VISOR_POR_DEFECTO >/dev/null 2>&1; then
-    $VISOR_POR_DEFECTO informe.pdf
+    $VISOR_POR_DEFECTO "$DIR_INFORME/informe.pdf"
   elif command -v $VISOR_WINDOWS >/dev/null 2>&1; then
-    $VISOR_WINDOWS informe.pdf
+    $VISOR_WINDOWS "$DIR_INFORME/informe.pdf"
   else
     echo "No se pudo encontrar un visor de PDFs. Por favor, instale uno."
   fi
-  cd ..
 }
 
-# función para visualizar la presentación en PDF
 show_slides() {
   echo "Visualizando la presentación..."
-  cd $DIR_PRESENTACION
-  if [ ! -f presentacion.pdf ]; then
+  if [ ! -f "$DIR_PRESENTACION/presentacion.pdf" ]; then
+    cd "$DIR_PRESENTACION"
     pdflatex presentacion.tex
+    cd -
   fi
   if command -v $VISOR_POR_DEFECTO >/dev/null 2>&1; then
-    $VISOR_POR_DEFECTO presentacion.pdf
+    $VISOR_POR_DEFECTO "$DIR_PRESENTACION/presentacion.pdf"
   elif command -v $VISOR_WINDOWS >/dev/null 2>&1; then
-    $VISOR_WINDOWS presentacion.pdf
+    $VISOR_WINDOWS "$DIR_PRESENTACION/presentacion.pdf"
   else
     echo "No se pudo encontrar un visor de PDFs. Por favor, instale uno."
   fi
-  cd ..
 }
-
 # función para eliminar archivos auxiliares generados por la compilación o ejecución del proyecto
 clean() {
   echo "Limpiando archivos auxiliares..."
