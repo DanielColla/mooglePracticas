@@ -1,0 +1,61 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+\title{Informe del Moogle}
+\author{Daniel Collazo Aldana}
+\institute{Grupo C112}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{Introducción}
+Este código es una implementación de un motor de búsqueda simple utilizando el modelo TFIDF (Term Frequency-Inverse Document Frequency) para calcular la relevancia de los documentos en función de una consulta de búsqueda.
+\end{frame}
+
+\begin{frame}
+\frametitle{Funciones}
+\begin{itemize}
+\item LeerArchivosDeTexto()
+\item Normalizar(string documento)
+\item ObtenerPalabras(string nombreArchivo)
+\item CalcularVectorTfIdf(string[] palabras, Dictionary<string, List<string>> frecuencia, string[] array)
+\item CalcularSimilitudCoseno(double[] vector1, double[] vector2)
+\item ObtenerPalabrasQuery(string query)
+\item CalcularMatrizTfIdf(string[] contenido, string[] nombres)
+\item CalcularSimilitudQuery(string query, string[] nombres, string[] contenido, double[,] matriz, Dictionary<string, List<string>> frecuencia)
+\item Busqueda(string query)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Funciones (cont.)}
+\begin{itemize}
+\item LeerArchivosDeTexto(): lee todos los archivos de texto en una carpeta llamada "Content" y devuelve una tupla con el contenido de los archivos y sus nombres.
+\item Normalizar(string documento): toma un documento y lo normaliza, convirtiendo todas las palabras en minúsculas y eliminando los caracteres no alfanuméricos.
+\item ObtenerPalabras(string nombreArchivo): lee el contenido de un archivo y lo normaliza, luego devuelve un array con todas las palabras del archivo.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Funciones (cont.)}
+\begin{itemize}
+\item CalcularVectorTfIdf(string[] palabras, Dictionary<string, List<string>> frecuencia, string[] array): toma una lista de palabras, una frecuencia de documentos y un array de palabras, y calcula el vector TF-IDF para cada palabra en la lista.
+\item CalcularSimilitudCoseno(double[] vector1, double[] vector2): calcula la similitud coseno entre dos vectores.
+\item ObtenerPalabrasQuery(string query): normaliza una consulta de búsqueda y devuelve un array con todas las palabras.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Funciones (cont.)}
+\begin{itemize}
+\item CalcularMatrizTfIdf(string[] contenido, string[] nombres): calcula la matriz TF-IDF para todos los documentos en una lista de contenido y nombres de archivo.
+\item CalcularSimilitudQuery(string query, string[] nombres, string[] contenido, double[,] matriz, Dictionary<string, List<string>> frecuencia): calcula la similitud coseno entre una consulta de búsqueda y todos los documentos en una lista de contenido y nombres de archivo.
+\item Busqueda(string query): es la función principal que realiza una búsqueda de texto. Utiliza las funciones anteriores para calcular la relevancia de los documentos en función de una consulta de búsqueda y devuelve un array de SearchItem, que contiene el nombre del archivo, la similitud coseno, las palabras clave (las palabras que aparecen en el archivo) y las primeras diez palabras del archivo.
+\end{itemize}
+\end{frame}
+
+\end{document}

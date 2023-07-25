@@ -1,0 +1,178 @@
+namespace MoogleEngine;
+
+class ElAprobado
+{
+    static (string[], string[]) LeerArchivosDeTexto()
+    {
+        string rutaCarpeta = Path.Combine(Directory.GetParent(".").ToString(), "Content");
+        // Buscar todos los archivos de texto en la carpeta especificada
+        string[] archivos = Directory.GetFiles(rutaCarpeta, "*.txt");
+        // Crear un array para el contenido de cada archivo
+        string[] contenidoArchivos = new string[archivos.Length];
+        // Leer el contenido de cada archivo y almacenarlo en el array correspondiente
+        for (int i = 0; i < archivos.Length; i++)
+        {
+            contenidoArchivos[i] = File.ReadAllText(archivos[i]);
+        }
+
+        return (contenidoArchivos, archivos);
+    }
+
+    static string[] Normalizar(string documento)
+    {
+        // Crear una lista para almacenar las palabras normalizadas
+        List<string> palabras = new List<string>();
+        // Separar el texto en palabras utilizando expresiones regulares
+        string[] palabrasTexto = Regex.Split(documento, @"\W+");
+        // Normalizar cada palabra a minúscula y agregarla a la lista de palabras
+        foreach (string palabra in palabrasTexto)
+        {
+            if (!string.IsNullOrWhiteSpace(palabra))
+            {
+                palabras.Add(palabra.ToLower());
+            }
+        }
+        // Convertir la lista de palabras en un array y devolverlo
+        return palabras.ToArray();
+    }
+
+    static string[] ObtenerPalabras(string nombreArchivo)
+    {
+        // Leer el contenido del archivo
+        string contenido = File.ReadAllText(nombreArchivo);
+
+        // Normalizar el texto y separarlo en palabras
+        string[] palabras = Regex.Split(contenido.ToLower(), @"\W+");
+
+        return palabras;
+    }
+
+    static double[] CalcularVectorTfIdf(string[] palabras, Dictionary<string, List<string>> frecuencia, string[] array)
+    {
+        double[] vector = new double[palabras.Length];
+        for (int i = 0; i < palabras.Length; i++)
+        {
+            string palabra = palabras[i];
+            double tf = 0;
+            double idf = 0;
+            int frecuenciaEnArray = array.Count(p => p == palabra);
+            if (frecuenciaEnArray > 0)
+            {
+                System.Console.WriteLine(palabra);
+                tf = (double)frecuenciaEnArray / array.Length;
+                idf = Math.Log((double)array.Length / frecuencia[palabra].Count);
+            }
+            vector[i] = tf * idf;
+        }
+        return vector;
+    }
+
+    static double CalcularSimilitudCoseno(double[] vector1, double[] vector2)
+    {
+        double productoPunto = 0;
+        double magnitud1 = 0;
+        double magnitud2 = 0;
+        for (int i = 0; i < vector1.Length; i++)
+        {
+            productoPunto += vector1[i] * vector2[i];
+            magnitud1 += vector1[i] * vector1[i];
+            magnitud2 += vector2[i] * vector2[i];
+        }
+        magnitud1 = Math.Sqrt(magnitud1);
+        magnitud2 = Math.Sqrt(magnitud2);
+        return productoPunto / (magnitud1 * magnitud2);
+    }
+
+    static string[] ObtenerPalabrasQuery(string query)
+    {
+        // Normalizar el texto y separarlo en palabras
+        string[] palabras = Regex.Split(query.ToLower(), @"\W+");
+
+        return palabras;
+    }
+
+    static double[] CalcularSimilitudQuery(string query, string[] nombres, string[] contenido, double[,] matriz, Dictionary<string, List<string>> frecuencia)
+    {
+        // Obtener las palabras normalizadas de la cadena de texto
+        string[] palabrasQuery = ObtenerPalabrasQuery(query);
+
+        // Calcular el vector de TF-IDF para la cadena de texto
+        double[] vectorQuery = CalcularVectorTfIdf(palabrasQuery, frecuencia, palabrasQuery);
+
+        // Calcular las similitudes de coseno entre el vector de la cadena de texto y cada uno de los vectores de los documentos en la matriz de TF-IDF
+        double[] similitudes = new double[nombres.Length];
+        for (int i = 0; i < nombres.Length; i++)
+        {
+            string[] palabrasEnDocumento = ObtenerPalabras(nombres[i]);
+            double[] vectorDocumento = CalcularVectorTfIdf(palabrasEnDocumento, frecuencia, Normalizar(contenido[i]));
+            double similitud = CalcularSimilitudCoseno(vectorQuery, vectorDocumento);
+            similitudes[i] = similitud;
+        }
+
+        return similitudes;
+    }
+
+    public static SearchItem[] Busqueda()
+    {
+        // Leer los archivos de texto de la carpeta "content"
+        (string[] contenido, string[] nombres) = LeerArchivosDeTexto();
+
+        // Crear la matriz de TF-IDF       
+        Dictionary<string, List<string>> frecuencia = new Dictionary<string, List<string>>();
+        for (int i = 0; i < nombres.Length; i++)
+        {
+            string[] palabrasEnDocumento = ObtenerPalabras(nombres[i]);
+            foreach (string palabra in palabrasEnDocumento)
+            {
+                if (!frecuencia.ContainsKey(palabra))
+                {
+                    frecuencia[palabra] = new List<string>();
+                }
+                if (!frecuencia[palabra].Contains(nombres[i]))
+                {
+                    frecuencia[palabra].Add(nombres[i]);
+                }
+            }
+
+            // double[] vectorDocumento = CalcularVectorTfIdf(palabrasEnDocumento, frecuencia, Normalizar(contenido[i]));
+            // for (int j = 0; j < palabrasEnDocumento.Length; j++)
+            // {
+            //     matriz[i, j] = vectorDocumento[j];              
+            // }
+        }
+        
+        double[,] matriz = new double[nombres.Length, frecuencia.Count];
+        for(int i = 0; i < nombres.Length; i++)
+        {
+            double[] vectorDocumento = CalcularVectorTfIdf(frecuencia.Keys.ToArray(), frecuencia, Normalizar(contenido[i]));
+            for (int j = 0; j < frecuencia.Count; j++)
+            {   
+                matriz[i, j] = vectorDocumento[j];              
+            }
+        }
+
+
+
+        // Calcular las similitudes de coseno entre la consulta y los documentos
+        string query = "consulta de ejemplo";
+        double[] similitudes = CalcularSimilitudQuery(query, nombres, contenido, matriz, frecuencia);
+
+        // Ordenar los resultados por similitud descendente
+        Array.Sort(similitudes, nombres);
+        Array.Reverse(nombres);
+        Array.Reverse(similitudes);
+
+        SearchItem[] resultado = new SearchItem[similitudes.Length];
+
+        // Mostrar los documentos más similares a la consulta
+        for (int i = 0, j = 0; i < nombres.Length; i++)
+        {
+            if (similitudes[i] > 0)
+            {
+                resultado[j++] = new SearchItem(nombres[i], "", (float) similitudes[i]);
+            }
+        }
+
+        return resultado;
+    }
+}
